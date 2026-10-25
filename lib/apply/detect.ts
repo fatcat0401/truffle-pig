@@ -29,7 +29,22 @@ function extractFieldsInPage(): FormField[] {
         forms.find((f) => f.querySelector('input[type="email"], input[name*="email" i]')) ?? forms[0];
     if (!form) return [];
 
-    const textOf = (el: Element | null | undefined) => (el?.textContent ?? "").replace(/\s+/g, " ").trim();
+    // Collapse spaces and drop a trailing required marker ("LinkedIn URL✱" -> "LinkedIn URL")
+    const textOf = (el: Element | null | undefined) =>
+        (el?.textContent ?? "").replace(/\s+/g, " ").trim().replace(/\s*[✱*]$/, "");
+
+    // Lever writes every question as <li class="application-question"><div class="application-label">Question</div>...
+    // Its <label> often wraps the whole control, so the label text would include every option.
+    const leverQuestion = (el: HTMLElement) => {
+        const heading = el.closest(".application-question")?.querySelector(".application-label");
+        return heading && !heading.contains(el) ? textOf(heading) : "";
+    };
+
+    // The question above a group of inputs: Lever's heading or a <legend>
+    const questionAbove = (el: HTMLElement) => {
+        const legend = el.closest("fieldset")?.querySelector("legend");
+        return leverQuestion(el) || (legend && !legend.contains(el) ? textOf(legend) : "");
+    };
 
     // Find the human-readable question for an input
     const labelFor = (el: HTMLElement) => {
@@ -37,13 +52,12 @@ function extractFieldsInPage(): FormField[] {
         const fromLabel = input.labels && input.labels.length > 0 ? textOf(input.labels[0]) : "";
         const labelledBy = el.getAttribute("aria-labelledby");
         const fromLabelledBy = labelledBy ? textOf(document.getElementById(labelledBy)) : "";
-        const fieldset = el.closest("fieldset");
-        const fromLegend = fieldset ? textOf(fieldset.querySelector("legend")) : "";
         return (
+            leverQuestion(el) ||
             fromLabel ||
             el.getAttribute("aria-label") ||
             fromLabelledBy ||
-            fromLegend ||
+            questionAbove(el) ||
             el.getAttribute("placeholder") ||
             el.getAttribute("name") ||
             ""
@@ -73,8 +87,8 @@ function extractFieldsInPage(): FormField[] {
             if (!name || seenGroups.has(name)) return;
             seenGroups.add(name);
             const group = Array.from(form.querySelectorAll<HTMLInputElement>(`input[name="${CSS.escape(name)}"]`));
-            const fieldset = el.closest("fieldset");
-            const question = (fieldset ? textOf(fieldset.querySelector("legend")) : "") || labelFor(el) || name;
+            // Each radio's own <label> is an option ("Yes"), not the question. A lone checkbox's label is the question.
+            const question = questionAbove(el) || (group.length === 1 ? labelFor(el) : "") || name;
             fields.push({
                 key: `group:${name}`,
                 selector: `input[name="${CSS.escape(name)}"]`,
