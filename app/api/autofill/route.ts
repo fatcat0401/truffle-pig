@@ -44,6 +44,8 @@ ${options.length
         }
 Base the answer on the candidate profile. If a fact is unknown (salary, visa, notice period), give an honest,
 neutral answer the candidate can edit, e.g. "Open to discussion".
+Never claim experience, skills, years, titles or achievements the profile does not show. If the profile does not
+support a "yes", say so plainly and point to the closest real experience instead (e.g. "No, but I have ...").
 
 CANDIDATE PROFILE:
 ${JSON.stringify(profile)}`;

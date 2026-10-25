@@ -90,7 +90,12 @@ export function ApplicationsList({ initial }: { initial: JobApplication[] }) {
                                         {app.missing_fields.length === 1 ? "question" : "questions"} your profile does not answer.
                                     </p>
                                 )}
-                                {app.error && <p className="mt-1 text-sm text-rust">{app.error}</p>}
+                                {/* The robot also writes notes here ("Dry run: ..."), so only failures are shown as errors */}
+                                {app.error && (
+                                    <p className={cn("mt-1 text-sm", app.status === "failed" ? "text-rust" : "text-muted-foreground")}>
+                                        {app.error}
+                                    </p>
+                                )}
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 {app.status === "missing_info" && (

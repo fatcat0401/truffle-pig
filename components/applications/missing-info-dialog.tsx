@@ -86,9 +86,9 @@ export function MissingInfoDialog({ application, onClose, onSubmitted }: Props) 
         <Dialog open={!!application} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Fill missing data</DialogTitle>
+                    <DialogTitle className="font-heading text-xl">Questions the agent could not answer</DialogTitle>
                     <DialogDescription>
-                        {application?.job_title} · {application?.company}. Your answers are saved for future applications.
+                        {application?.job_title} at {application?.company}. AI Autofill only drafts: check every answer before you save. Answers are reused on later applications.
                     </DialogDescription>
                 </DialogHeader>
 
