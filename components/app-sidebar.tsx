@@ -28,6 +28,11 @@ type Props = {
     user: { name: string; email: string; avatarUrl: string | null };
 };
 
+async function signOut() {
+    await fetch("/auth/signout", { method: "POST" });
+    window.location.href = "/";
+}
+
 // Desktop: a narrow soil-coloured rail on the left. Phone: a bar at the bottom.
 export function AppSidebar({ user }: Props) {
     const pathname = usePathname();
@@ -63,7 +68,20 @@ export function AppSidebar({ user }: Props) {
                         </Tooltip>
                     );
                 })}
-                <div className="mt-auto">
+                <div className="mt-auto flex flex-col items-center gap-3">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                type="button"
+                                onClick={signOut}
+                                aria-label="Sign out"
+                                className="flex size-10 items-center justify-center rounded-lg text-soil-foreground/70 transition-colors hover:text-soil-foreground focus-visible:outline-2 focus-visible:outline-sidebar-ring"
+                            >
+                                <LogOut className="size-5" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">Sign out</TooltipContent>
+                    </Tooltip>
                     <UserMenu user={user} side="right" />
                 </div>
             </nav>
@@ -102,11 +120,6 @@ export function UserMenu({ user, side }: Props & { side: "right" | "bottom" }) {
             .join("")
             .slice(0, 2)
             .toUpperCase() || "U";
-
-    async function signOut() {
-        await fetch("/auth/signout", { method: "POST" });
-        window.location.href = "/";
-    }
 
     return (
         <DropdownMenu>
