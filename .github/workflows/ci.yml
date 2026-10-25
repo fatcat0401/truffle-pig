@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    # Dummy values: the build only needs the variables to exist, it never calls the services
+    env:
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-dummy
+      SUPABASE_SECRET_KEY: ci-dummy
+      GEMINI_API_KEY: ci-dummy
+      GEMINI_MODEL: gemini-3.5-flash-lite
+      BRAVE_SEARCH_API_KEY: ci-dummy
+      BROWSERBASE_API_KEY: ci-dummy
+      BROWSERBASE_PROJECT_ID: ci-dummy
+      APPLY_DRY_RUN: "true"
+      ALLOWED_EMAILS: ci@example.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npm run build

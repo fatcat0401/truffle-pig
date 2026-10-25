@@ -83,7 +83,7 @@ function stripHtml(text: string) {
 // through a referral..."). It says nothing about the job, so drop it: match % then uses the title.
 const BOILERPLATE = /job seekers get hired through a referral|use linkedin jobs to boost/i;
 
-function cleanSnippet(text?: string) {
+export function cleanSnippet(text?: string) {
     if (!text) return null;
     const clean = stripHtml(text);
     return BOILERPLATE.test(clean) ? null : clean;
@@ -91,7 +91,7 @@ function cleanSnippet(text?: string) {
 
 // "Job Application for Frontend Engineer at Figma" -> "Frontend Engineer"
 // "Figma - Frontend Engineer" -> "Frontend Engineer"
-function cleanTitle(title: string) {
+export function cleanTitle(title: string) {
     let t = title.replace(/^job application for\s+/i, "").replace(/\s+at\s+[^|–-]+$/i, "");
     const parts = t.split(/\s+[-–|]\s+/);
     if (parts.length > 1) t = parts.sort((a, b) => b.length - a.length)[0];
@@ -103,7 +103,7 @@ function parseAtsResult(r: BraveResult) {
     return { title: cleanTitle(stripHtml(r.title)), company: companyFromUrl(r.url), location: null };
 }
 
-function companyFromUrl(url: string) {
+export function companyFromUrl(url: string) {
     // The first part of the path is the company slug: jobs.lever.co/<company>/...
     const slug = new URL(url).pathname.split("/").filter(Boolean)[0];
     if (!slug) return null;
@@ -115,7 +115,7 @@ function companyFromUrl(url: string) {
 //   "Data Engineer at Macquarie Group — Sydney, New South ..."
 //   "Senior Data Engineer - Financial Services at EY"
 //   "Senior Data Engineer - Xeneta"
-function parseLinkedInTitle(raw: string) {
+export function parseLinkedInTitle(raw: string) {
     const t = raw.replace(/\s*\|\s*LinkedIn\s*$/i, "").replace(/\s*(\.\.\.|…)\s*$/, "").trim();
     const clean = (s: string) => s.replace(/[\s,]+$/, "").trim();
 

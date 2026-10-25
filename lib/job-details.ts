@@ -38,7 +38,7 @@ const GEMINI_TIMEOUT_MS = 15_000;
 const NO_EXTRA: Extra = { experience_level: null, job_type: null, tags: [] };
 
 // Reject if the promise takes longer than `ms`. The slow call keeps running, we just stop waiting.
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     let timer: ReturnType<typeof setTimeout>;
     const timeout = new Promise<never>((_, reject) => {
         timer = setTimeout(() => reject(new Error(`Timed out after ${ms} ms`)), ms);
@@ -105,7 +105,7 @@ async function getJson(url: string) {
 const money = (n: number) => Math.round(n).toLocaleString("en-AU");
 
 // "&lt;p&gt;Hello &amp;amp; welcome&lt;/p&gt;" -> "Hello & welcome"
-function htmlToText(value: string | null | undefined) {
+export function htmlToText(value: string | null | undefined) {
     if (!value) return null;
     const decode = (s: string) =>
         s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
