@@ -11,7 +11,7 @@ export default async function ProfilePage() {
     return (
         <div className="mx-auto max-w-6xl space-y-6">
             <div>
-                <h1 className="text-2xl font-bold">Profile</h1>
+                <h1 className="text-3xl font-semibold text-truffle">Profile</h1>
                 <p className="text-muted-foreground">Check what AI found in your resume and fill in anything missing.</p>
             </div>
             <ProfileForm profile={profile as Profile} />

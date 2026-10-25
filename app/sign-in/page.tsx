@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Bot } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SnoutMark } from "@/components/brand/logo";
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
 
 export default async function SignInPage({
@@ -11,29 +10,24 @@ export default async function SignInPage({
     const { next, error } = await searchParams;
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-            <Card className="w-full max-w-sm">
-                <CardHeader className="items-center text-center">
-                    <Link href="/" className="mx-auto mb-2 flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                        <Bot className="size-6" />
-                    </Link>
-                    <CardTitle className="text-2xl">Welcome to Truffle Pig</CardTitle>
-                    <CardDescription>Sign in to find matching jobs and let AI apply for you.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {error && (
-                        <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                            {error === "not_allowed"
-                                ? "This is a personal app. Your Google account is not on the allow list."
-                                : "Sign in failed. Please try again."}
-                        </p>
-                    )}
-                    <GoogleSignInButton next={next} />
-                    <p className="text-center text-xs text-muted-foreground">
-                        We only use your Google account to sign you in.
+        <div className="flex min-h-svh items-center justify-center bg-soil p-4">
+            <div className="w-full max-w-sm rounded-xl bg-card p-8 text-card-foreground shadow-2xl shadow-black/40">
+                <Link href="/" aria-label="Truffle Pig home" className="inline-block">
+                    <SnoutMark className="size-10 text-truffle" />
+                </Link>
+                <h1 className="mt-5 text-3xl font-semibold">Sign in</h1>
+                <p className="mt-2 text-muted-foreground">Truffle Pig is a personal app. Only allowed Google accounts can enter.</p>
+                {error && (
+                    <p role="alert" className="mt-5 rounded-md bg-rust/10 p-3 text-sm text-rust">
+                        {error === "not_allowed"
+                            ? "This Google account is not on the allow list."
+                            : "Google sign-in did not finish. Try again."}
                     </p>
-                </CardContent>
-            </Card>
+                )}
+                <div className="mt-6">
+                    <GoogleSignInButton next={next} />
+                </div>
+            </div>
         </div>
     );
 }

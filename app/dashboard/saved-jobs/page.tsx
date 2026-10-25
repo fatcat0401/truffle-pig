@@ -23,10 +23,10 @@ export default async function SavedJobsPage() {
         .map((job) => ({ ...job, ...matchJob(job, skills) }));
 
     return (
-        <div className="mx-auto max-w-4xl space-y-6">
+        <div className="mx-auto max-w-7xl space-y-6">
             <div>
-                <h1 className="text-2xl font-bold">Saved Jobs</h1>
-                <p className="text-muted-foreground">Jobs you bookmarked to apply later.</p>
+                <h1 className="text-3xl font-semibold text-truffle">Saved jobs</h1>
+                <p className="mt-1 text-muted-foreground">Jobs you put aside to apply to later.</p>
             </div>
             <SavedJobsList jobs={jobs} appliedUrls={(applied ?? []).map((a) => a.job_url)} />
         </div>

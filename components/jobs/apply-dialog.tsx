@@ -47,7 +47,7 @@ export function ApplyDialog({ job, applied, onApplied }: { job: Job; applied: bo
 
     if (applied) {
         return (
-            <Button size="sm" variant="secondary" disabled>
+            <Button variant="secondary" disabled>
                 <Check className="size-4" /> Applied
             </Button>
         );
@@ -56,7 +56,7 @@ export function ApplyDialog({ job, applied, onApplied }: { job: Job; applied: bo
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button size="sm">Apply now</Button>
+                <Button>Apply</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
@@ -89,10 +89,10 @@ export function ApplyDialog({ job, applied, onApplied }: { job: Job; applied: bo
                             <Bot className="mt-0.5 size-5 text-primary" />
                         )}
                         <div>
-                            <p className="font-medium">Apply automatically with AI agent</p>
+                            <p className="font-medium">Apply with the AI agent</p>
                             <p className="text-sm text-muted-foreground">
                                 {canAutoApply
-                                    ? "Our agent fills the form in a cloud browser. Uses 1 credit."
+                                    ? "The agent fills the form in a cloud browser and asks you about anything it does not know."
                                     : `Not available for ${platformLabel}: it needs your login. Use "Apply manually".`}
                             </p>
                         </div>

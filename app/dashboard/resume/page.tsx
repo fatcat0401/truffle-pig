@@ -25,7 +25,7 @@ export default async function ResumePage() {
     return (
         <div className="mx-auto max-w-3xl space-y-6">
             <div>
-                <h1 className="text-2xl font-bold">Resume</h1>
+                <h1 className="text-3xl font-semibold text-truffle">Resume</h1>
                 <p className="text-muted-foreground">The most recent resume is attached to every AI application.</p>
             </div>
 

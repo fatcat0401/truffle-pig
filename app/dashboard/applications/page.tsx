@@ -14,8 +14,10 @@ export default async function ApplicationsPage() {
     return (
         <div className="mx-auto max-w-5xl space-y-6">
             <div>
-                <h1 className="text-2xl font-bold">Applications</h1>
-                <p className="text-muted-foreground">Live status of every application the AI agent is working on.</p>
+                <h1 className="text-3xl font-semibold text-truffle">Applications</h1>
+                <p className="mt-1 text-muted-foreground">
+                    Where each application is. The agent stops and waits for you whenever a form asks something it does not know.
+                </p>
             </div>
             <ApplicationsList initial={(data ?? []) as JobApplication[]} />
         </div>

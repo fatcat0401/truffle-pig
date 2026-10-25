@@ -10,10 +10,10 @@ export default async function JobsPage() {
     ]);
 
     return (
-        <div className="mx-auto max-w-6xl space-y-6">
+        <div className="mx-auto max-w-7xl space-y-6">
             <div>
-                <h1 className="text-2xl font-bold">Jobs</h1>
-                <p className="text-muted-foreground">Fresh postings from the past week, matched to your skills.</p>
+                <h1 className="text-3xl font-semibold text-truffle">Jobs</h1>
+                <p className="mt-1 text-muted-foreground">Fresh postings from the past month, ranked by how well they match your skills.</p>
             </div>
             <JobBoard
                 profile={{

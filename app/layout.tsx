@@ -1,26 +1,27 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Figtree, Fraunces } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"] });
+// Variable font with the SOFT and WONK axes, used for headings
+const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], axes: ["SOFT", "WONK", "opsz"] });
 
 export const metadata: Metadata = {
   title: "Truffle Pig — Human-in-the-loop AI Job Hunting Agent",
-  description: "Upload your resume, find matching jobs and let an AI agent apply for you.",
+  description: "A personal AI agent that finds jobs in Australia, drafts applications and asks you before it guesses.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    // Font variables live on <html> because the font-sans rule is applied there
+    <html lang="en" className={`${figtree.variable} ${fraunces.variable}`}>
+      <body className="antialiased">
         {/* shadcn v4: the sidebar's tooltips need ONE provider around the whole app */}
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster richColors position="top-right" />
       </body>
-
     </html>
   );
 }

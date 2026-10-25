@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar, UserMenu } from "@/components/app-sidebar";
+import { Wordmark } from "@/components/brand/logo";
 import { OnboardingModal } from "@/components/onboarding-modal";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,25 +16,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
         supabase.from("resumes").select("id", { count: "exact", head: true }).eq("user_id", user.id),
     ]);
 
+    const menuUser = {
+        name: profile?.full_name ?? user.email ?? "User",
+        email: user.email ?? "",
+        avatarUrl: (user.user_metadata?.avatar_url as string | undefined) ?? null,
+    };
+
     return (
-        <SidebarProvider>
-            <AppSidebar
-                user={{
-                    name: profile?.full_name ?? user.email ?? "User",
-                    email: user.email ?? "",
-                    avatarUrl: (user.user_metadata?.avatar_url as string | undefined) ?? null,
-                }}
-            />
-            <SidebarInset>
-                <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-                    <SidebarTrigger className="-ml-1" />
-                    <Separator orientation="vertical" className="mr-2 h-4" />
-                    <span className="text-sm text-muted-foreground">Truffle Pig</span>
+        <div className="flex min-h-svh">
+            <AppSidebar user={menuUser} />
+            <div className="min-w-0 flex-1">
+                {/* Phone only: the rail becomes a bottom bar, so brand + account live up here */}
+                <header className="flex h-14 items-center justify-between border-b px-4 md:hidden">
+                    <Wordmark />
+                    <UserMenu user={menuUser} side="bottom" />
                 </header>
-                <main className="flex-1 p-4 md:p-6">{children}</main>
-            </SidebarInset>
+                <main className="px-4 pt-6 pb-24 md:px-8 md:pt-8 md:pb-8">{children}</main>
+            </div>
             {/* First visit: block the dashboard until a resume is uploaded */}
             {!resumeCount && <OnboardingModal />}
-        </SidebarProvider>
+        </div>
     );
 }

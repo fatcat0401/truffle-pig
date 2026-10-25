@@ -3,21 +3,18 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, ExternalLink, Search } from "lucide-react";
+import { ExternalLink, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { JobCard } from "@/components/jobs/job-card";
+import { JobSplitView } from "@/components/jobs/job-split-view";
 import { RecentActivity } from "@/components/jobs/recent-activity";
 import type { BoardLink } from "@/lib/job-boards";
 import { PLATFORMS, type Activity, type JobWithMatch, type Platform } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-const PAGE_SIZE = 10;
 
 type JobsResponse = {
     query: string;
@@ -38,10 +35,8 @@ export function JobBoard({ profile, activity }: Props) {
     const [query, setQuery] = useState(""); // empty = search based on the profile
     const [platforms, setPlatforms] = useState<Platform[]>(PLATFORMS.map((p) => p.id));
     const [data, setData] = useState<JobsResponse | null>(null);
-    const [saved, setSaved] = useState<Set<string>>(new Set());
-    const [applied, setApplied] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
-    const [page, setPage] = useState(1);
+    const [searchId, setSearchId] = useState(0); // new key for the split view on every result
     const router = useRouter();
 
     useEffect(() => {
@@ -59,9 +54,7 @@ export function JobBoard({ profile, activity }: Props) {
             .then((body) => {
                 if (cancelled) return;
                 setData(body);
-                setSaved(new Set(body.savedUrls));
-                setApplied(new Set(body.appliedUrls));
-                setPage(1);
+                setSearchId((id) => id + 1);
                 // New search = new "Fetched N jobs" row: reload the server part so Recent activity shows it
                 if (body.calledBrave) router.refresh();
             })
@@ -80,50 +73,79 @@ export function JobBoard({ profile, activity }: Props) {
         });
     }
 
-    function updateSet(setter: typeof setSaved, url: string, on: boolean) {
-        setter((current) => {
-            const next = new Set(current);
-            if (on) next.add(url);
-            else next.delete(url);
-            return next;
-        });
-    }
-
     const jobs = data?.jobs ?? [];
-    const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE));
-    const pageJobs = jobs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+    const sidePanel = (
+        <div className="space-y-6">
+            <p className="font-heading text-xl text-truffle">Pick a job on the left to read it here.</p>
+            <section className="rounded-lg border bg-card p-5">
+                <div className="flex items-center justify-between gap-3">
+                    <h2 className="text-lg font-semibold">Your profile</h2>
+                    <Button variant="outline" size="sm" asChild>
+                        <Link href="/dashboard/profile">Edit profile</Link>
+                    </Button>
+                </div>
+                {profile.headline && <p className="mt-2 text-sm">{profile.headline}</p>}
+                <div className="mt-4">
+                    <div className="mb-1.5 flex justify-between text-sm">
+                        <span className="text-muted-foreground">Profile complete</span>
+                        <span className="font-medium tabular-nums">{profile.completeness}%</span>
+                    </div>
+                    <Progress value={profile.completeness} />
+                </div>
+                {profile.skills.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                        {profile.skills.slice(0, 14).map((skill) => (
+                            <Badge key={skill} variant="secondary" className="font-normal">
+                                {skill}
+                            </Badge>
+                        ))}
+                    </div>
+                )}
+            </section>
+            <RecentActivity items={activity} />
+        </div>
+    );
 
     return (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-            <div className="space-y-4">
-                <form
-                    className="flex gap-2"
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        setQuery(input.trim());
-                    }}
-                >
+        <div className="space-y-5">
+            <form
+                className="flex gap-2"
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    setQuery(input.trim());
+                }}
+            >
+                <div className="relative flex-1">
+                    <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder={`Search roles (default: ${data?.query ?? "from your profile"})`}
+                        aria-label="Role to search for"
+                        placeholder={data?.query ? `Role, e.g. ${data.query.replace(/"/g, "")}` : "Role, or leave empty to use your profile"}
+                        className="h-11 bg-card pl-9"
                     />
-                    <Button type="submit">
-                        <Search className="size-4" /> Search
-                    </Button>
-                </form>
+                </div>
+                <Button type="submit" className="h-11 px-5">
+                    Search
+                </Button>
+            </form>
 
-                <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Job sources">
                     {PLATFORMS.map((p) => {
                         const active = platforms.includes(p.id);
                         return (
                             <button
                                 key={p.id}
                                 type="button"
+                                aria-pressed={active}
                                 onClick={() => togglePlatform(p.id)}
                                 className={cn(
-                                    "rounded-full border px-3 py-1 text-sm transition-colors",
-                                    active ? "border-primary bg-primary text-primary-foreground" : "hover:border-primary",
+                                    "rounded-md border px-2.5 py-1 transition-colors focus-visible:outline-2 focus-visible:outline-ring",
+                                    active
+                                        ? "border-moss bg-accent text-accent-foreground"
+                                        : "text-muted-foreground hover:border-moss/60",
                                 )}
                             >
                                 {p.label}
@@ -131,86 +153,54 @@ export function JobBoard({ profile, activity }: Props) {
                         );
                     })}
                 </div>
-
                 {data && data.boardLinks.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                        <span>Also search on:</span>
+                    <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
+                        <span>Also search on</span>
                         {data.boardLinks.map((link) => (
-                            <Button key={link.label} variant="outline" size="sm" asChild>
-                                <a href={link.url} target="_blank" rel="noreferrer">
-                                    {link.label} <ExternalLink className="size-3" />
-                                </a>
-                            </Button>
+                            <a
+                                key={link.label}
+                                href={link.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-1 font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-moss"
+                            >
+                                {link.label} <ExternalLink className="size-3" />
+                            </a>
                         ))}
                     </div>
                 )}
+            </div>
 
-                {loading ? (
-                    Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)
-                ) : jobs.length === 0 ? (
-                    <Card>
-                        <CardContent className="py-10 text-center text-muted-foreground">
-                            No jobs found. Try another search or select more platforms.
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <>
-                        <p className="text-sm text-muted-foreground">
-                            {jobs.length} jobs for <span className="font-medium text-foreground">{data?.query}</span>
-                        </p>
-                        {pageJobs.map((job) => (
-                            <JobCard
-                                key={job.id}
-                                job={job}
-                                saved={saved.has(job.url)}
-                                applied={applied.has(job.url)}
-                                onSavedChange={(on) => updateSet(setSaved, job.url, on)}
-                                onApplied={() => updateSet(setApplied, job.url, true)}
-                            />
+            {loading ? (
+                <div className="grid gap-6 lg:grid-cols-[minmax(320px,400px)_minmax(0,1fr)]">
+                    <div className="space-y-px overflow-hidden rounded-lg border">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <Skeleton key={i} className="h-20 w-full rounded-none" />
                         ))}
-                        <div className="flex items-center justify-center gap-3">
-                            <Button variant="outline" size="icon" disabled={page === 1} onClick={() => setPage(page - 1)} aria-label="Previous page">
-                                <ChevronLeft className="size-4" />
-                            </Button>
-                            <span className="text-sm">
-                                Page {page} of {totalPages}
-                            </span>
-                            <Button variant="outline" size="icon" disabled={page === totalPages} onClick={() => setPage(page + 1)} aria-label="Next page">
-                                <ChevronRight className="size-4" />
-                            </Button>
-                        </div>
-                    </>
-                )}
-            </div>
-
-            <div className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Your profile</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div>
-                            <div className="mb-2 flex justify-between text-sm">
-                                <span>Completeness</span>
-                                <span className="font-medium">{profile.completeness}%</span>
-                            </div>
-                            <Progress value={profile.completeness} />
-                        </div>
-                        {profile.headline && <p className="text-sm font-medium">{profile.headline}</p>}
-                        <div className="flex flex-wrap gap-1.5">
-                            {profile.skills.slice(0, 12).map((skill) => (
-                                <Badge key={skill} variant="secondary" className="font-normal">
-                                    {skill}
-                                </Badge>
-                            ))}
-                        </div>
-                        <Button variant="outline" className="w-full" asChild>
-                            <Link href="/dashboard/profile">Edit profile</Link>
-                        </Button>
-                    </CardContent>
-                </Card>
-                <RecentActivity items={activity} />
-            </div>
+                    </div>
+                    <p className="text-muted-foreground">Sniffing out fresh postings…</p>
+                </div>
+            ) : jobs.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-10 text-center">
+                    <p className="font-medium">No jobs found for {data?.query ?? "this search"}.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Try a broader role, turn on more sources, or use the SEEK and Jora links above.
+                    </p>
+                </div>
+            ) : (
+                <>
+                    <p className="text-sm text-muted-foreground">
+                        {jobs.length} jobs for <span className="font-medium text-foreground">{data?.query}</span>, best match first
+                    </p>
+                    <JobSplitView
+                        key={searchId}
+                        jobs={jobs}
+                        savedUrls={data?.savedUrls ?? []}
+                        appliedUrls={data?.appliedUrls ?? []}
+                        emptyPane={sidePanel}
+                    />
+                </>
+            )}
         </div>
     );
 }
