@@ -4,7 +4,6 @@ import { buildSearchPlace, buildSearchQuery, getJobs } from "@/lib/jobs";
 import { matchJob } from "@/lib/match";
 import { logActivity } from "@/lib/activity";
 import { buildBoardSearchLinks } from "@/lib/job-boards";
-import { PLANS, type PlanId } from "@/lib/plans";
 import { PLATFORMS, type Platform } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -21,7 +20,7 @@ export async function GET(request: Request) {
 
     const { data: profile } = await supabase
         .from("profiles")
-        .select("headline, experience, skills, plan, location")
+        .select("headline, experience, skills, location")
         .eq("id", user.id)
         .single();
 
@@ -38,13 +37,6 @@ export async function GET(request: Request) {
         .map((job) => ({ ...job, ...matchJob(job, skills) }))
         .sort((a, b) => b.match - a.match);
 
-    // Free plan: only the best N matches. The cut happens HERE on the server,
-    // so hidden jobs never reach the browser.
-    const plan = (profile?.plan ?? "free") as PlanId;
-    const visible = PLANS[plan].jobsVisible;
-    const shown = visible === null ? withMatch : withMatch.slice(0, visible);
-    const lockedCount = withMatch.length - shown.length;
-
     // Only log real searches (new data from Brave), not every page refresh
     if (calledBrave) await logActivity(user.id, "search", `Fetched ${jobs.length} jobs for ${query}`);
 
@@ -56,8 +48,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
         query,
         calledBrave,
-        jobs: shown,
-        lockedCount,
+        jobs: withMatch,
         boardLinks: buildBoardSearchLinks(role, place),
         savedUrls: (saved ?? []).map((row) => (row.job as unknown as { url: string } | null)?.url).filter(Boolean),
         appliedUrls: (applied ?? []).map((row) => row.job_url),

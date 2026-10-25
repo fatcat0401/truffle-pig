@@ -6,8 +6,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    // Run on every page except static files and the two webhook endpoints.
+    // Run on every page except static files and the Inngest endpoint (signed by Inngest, no user session).
     matcher: [
-        "/((?!_next/static|_next/image|favicon.ico|api/inngest|api/stripe/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+        "/((?!_next/static|_next/image|favicon.ico|api/inngest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
     ],
 };

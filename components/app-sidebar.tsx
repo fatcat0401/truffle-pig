@@ -7,7 +7,6 @@ import {
     Bot,
     Briefcase,
     ChevronsUpDown,
-    CreditCard,
     FileText,
     ListChecks,
     LogOut,
@@ -29,13 +28,10 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UsageMeter } from "@/components/usage-meter";
-import type { PlanId } from "@/lib/plans";
 
 const NAV = [
     { href: "/dashboard/jobs", label: "Jobs", icon: Briefcase },
@@ -43,16 +39,13 @@ const NAV = [
     { href: "/dashboard/applications", label: "Applications", icon: ListChecks },
     { href: "/dashboard/resume", label: "Resume", icon: FileText },
     { href: "/dashboard/profile", label: "Profile", icon: User },
-    { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
 ];
 
 type Props = {
     user: { name: string; email: string; avatarUrl: string | null };
-    usage: { used: number; limit: number };
-    plan: PlanId;
 };
 
-export function AppSidebar({ user, usage, plan }: Props) {
+export function AppSidebar({ user }: Props) {
     const pathname = usePathname();
     const initials =
         user.name
@@ -108,7 +101,6 @@ export function AppSidebar({ user, usage, plan }: Props) {
             </SidebarContent>
 
             <SidebarFooter>
-                <UsageMeter used={usage.used} limit={usage.limit} plan={plan} />
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <DropdownMenu>
@@ -126,18 +118,9 @@ export function AppSidebar({ user, usage, plan }: Props) {
                                 </SidebarMenuButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent side="top" align="start" className="w-56">
-                                <DropdownMenuLabel>
-                                    {plan === "pro" ? "Pro plan" : "Free plan"}
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
                                     <Link href="/dashboard/profile">
                                         <User className="size-4" /> Profile
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link href="/dashboard/billing">
-                                        <CreditCard className="size-4" /> Billing
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />

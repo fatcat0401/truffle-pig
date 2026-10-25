@@ -2,10 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getApiUser, jsonError } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { consumeApplyCredit } from "@/lib/usage";
 import { inngest } from "@/lib/inngest/client";
 import { logActivity } from "@/lib/activity";
-import { PLANS, type PlanId } from "@/lib/plans";
 import { canAutoApply } from "@/lib/types";
 
 const bodySchema = z.object({ jobId: z.string().uuid() });
@@ -32,20 +30,11 @@ export async function POST(request: Request) {
         .limit(1);
     if (existing && existing.length > 0) return jsonError("You already applied to this job", 409);
 
-    const [{ data: profile }, { count: resumeCount }] = await Promise.all([
-        supabase.from("profiles").select("plan").eq("id", user.id).single(),
-        supabase.from("resumes").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-    ]);
+    const { count: resumeCount } = await supabase
+        .from("resumes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
     if (!resumeCount) return jsonError("Please upload a resume first", 400);
-
-    const plan = (profile?.plan ?? "free") as PlanId;
-    const allowed = await consumeApplyCredit(user.id, plan);
-    if (!allowed) {
-        return jsonError(
-            `Daily limit reached (${PLANS[plan].dailyLimit} per day).${plan === "free" ? " Upgrade to Pro for more." : ""}`,
-            429,
-        );
-    }
 
     const admin = createAdminClient();
     const { data: application, error } = await admin

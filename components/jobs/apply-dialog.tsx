@@ -42,7 +42,7 @@ export function ApplyDialog({ job, applied, onApplied }: { job: Job; applied: bo
         toast.success("Queued! Track progress on the Applications page.");
         setOpen(false);
         onApplied();
-        router.refresh(); // updates the usage counter in the sidebar
+        router.refresh(); // updates Recent activity
     }
 
     if (applied) {

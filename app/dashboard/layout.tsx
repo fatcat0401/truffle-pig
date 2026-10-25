@@ -4,8 +4,6 @@ import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/components/app-sidebar";
 import { OnboardingModal } from "@/components/onboarding-modal";
 import { createClient } from "@/lib/supabase/server";
-import { getTodayUsage } from "@/lib/usage";
-import type { PlanId } from "@/lib/plans";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient();
@@ -15,12 +13,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     if (!user) redirect("/sign-in");
 
     const [{ data: profile }, { count: resumeCount }] = await Promise.all([
-        supabase.from("profiles").select("full_name, plan").eq("id", user.id).single(),
+        supabase.from("profiles").select("full_name").eq("id", user.id).single(),
         supabase.from("resumes").select("id", { count: "exact", head: true }).eq("user_id", user.id),
     ]);
-
-    const plan = (profile?.plan ?? "free") as PlanId;
-    const usage = await getTodayUsage(user.id, plan);
 
     return (
         <SidebarProvider>
@@ -30,8 +25,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     email: user.email ?? "",
                     avatarUrl: (user.user_metadata?.avatar_url as string | undefined) ?? null,
                 }}
-                usage={usage}
-                plan={plan}
             />
             <SidebarInset>
                 <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">

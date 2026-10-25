@@ -23,7 +23,9 @@ export default async function SignInPage({
                 <CardContent className="space-y-4">
                     {error && (
                         <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                            Sign in failed. Please try again.
+                            {error === "not_allowed"
+                                ? "This is a personal app. Your Google account is not on the allow list."
+                                : "Sign in failed. Please try again."}
                         </p>
                     )}
                     <GoogleSignInButton next={next} />

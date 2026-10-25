@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, ExternalLink, Lock, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,6 @@ const PAGE_SIZE = 10;
 type JobsResponse = {
     query: string;
     jobs: JobWithMatch[];
-    lockedCount: number; // jobs hidden by the Free plan
     boardLinks: BoardLink[]; // "Search on SEEK / Jora" with the same role + city
     savedUrls: string[];
     appliedUrls: string[];
@@ -169,18 +168,6 @@ export function JobBoard({ profile, activity }: Props) {
                                 onApplied={() => updateSet(setApplied, job.url, true)}
                             />
                         ))}
-                        {data && data.lockedCount > 0 && page === totalPages && (
-                            <Card className="border-dashed">
-                                <CardContent className="flex flex-wrap items-center justify-between gap-3 py-6">
-                                    <p className="flex items-center gap-2 text-sm">
-                                        <Lock className="size-4" /> {data.lockedCount} more matching jobs are hidden on the Free plan.
-                                    </p>
-                                    <Button asChild size="sm">
-                                        <Link href="/dashboard/billing">Upgrade to Pro</Link>
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        )}
                         <div className="flex items-center justify-center gap-3">
                             <Button variant="outline" size="icon" disabled={page === 1} onClick={() => setPage(page - 1)} aria-label="Previous page">
                                 <ChevronLeft className="size-4" />

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isEmailAllowed } from "@/lib/allowed-emails";
 
 // Google sends the user back here with ?code=... We swap the code for a session cookie.
 export async function GET(request: Request) {
@@ -11,8 +12,13 @@ export async function GET(request: Request) {
 
     if (code) {
         const supabase = await createClient();
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
+            // Personal app: anyone not on the allow list is signed straight back out
+            if (!isEmailAllowed(data.user?.email)) {
+                await supabase.auth.signOut();
+                return NextResponse.redirect(`${origin}/sign-in?error=not_allowed`);
+            }
             return NextResponse.redirect(`${origin}${next}`);
         }
     }

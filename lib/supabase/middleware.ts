@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isEmailAllowed } from "@/lib/allowed-emails";
 
 export async function updateSession(request: NextRequest) {
     let response = NextResponse.next({ request });
@@ -22,11 +23,25 @@ export async function updateSession(request: NextRequest) {
     );
 
     // Refreshes the login cookie if needed. Do not put code between createServerClient and getUser.
-    const {
+    let {
         data: { user },
     } = await supabase.auth.getUser();
 
     const path = request.nextUrl.pathname;
+
+    // Signed in with an account that is not on the allow list: drop the session
+    if (user && !isEmailAllowed(user.email)) {
+        await supabase.auth.signOut(); // clears the auth cookies on `response`
+        user = null;
+        if (path.startsWith("/dashboard")) {
+            const url = request.nextUrl.clone();
+            url.pathname = "/sign-in";
+            url.search = "?error=not_allowed";
+            const redirect = NextResponse.redirect(url);
+            response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+            return redirect;
+        }
+    }
 
     // Not signed in but trying to open the dashboard: go to sign-in
     if (!user && path.startsWith("/dashboard")) {
